@@ -4,7 +4,7 @@ Single-page GitHub Pages app (un seul fichier `index.html`, sans dépendance sau
 
 ## Utilisation
 
-Ouvrir `index.html` dans un navigateur, ou servir le dossier via GitHub Pages. Régler les 3 valeurs avec les barillets (molette, tactile, clic ou flèches du clavier) puis cliquer sur **Calculer** :
+Ouvrir `index.html` dans un navigateur, ou servir le dossier via GitHub Pages. Régler les 3 valeurs avec les barillets (molette, tactile, clic ou flèches du clavier) — **le solde se recalcule en direct** à chaque cran, le bouton **Calculer** force le recalcul. Les dernières valeurs sont mémorisées (localStorage) et restaurées à la visite suivante :
 
 1. **Jours restants** dans le cycle (0–30)
 2. **Heures restantes** dans le cycle (0–23, comme une horloge — le total ne peut jamais dépasser 720 h : à 30 jours les heures retombent à 0)
@@ -25,6 +25,8 @@ Ouvrir `index.html` dans un navigateur, ou servir le dossier via GitHub Pages. R
 - 🟠 Orange : solde entre 0 et 10 points (en avance, à surveiller)
 - 🔴 Rouge : solde entre 10 et 20 points (largement en avance, réduire l'usage)
 - 🚨 Rouge vif : solde > 20 points (critique, le quota sera épuisé bien avant la fin du cycle)
+
+La carte solde affiche aussi une jauge centrée sur 0 (= parfaitement calé sur le temps écoulé, échelle auto), et un résumé texte `aria-live` annonce le solde en lecture d'écran.
 
 ## Design
 

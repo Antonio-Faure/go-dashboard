@@ -85,6 +85,11 @@ html[data-force-chrome] .theme-toggle{display:none}
 .status-cyan:hover{border-color:#22d3ee !important;box-shadow:var(--shadow),0 0 20px rgba(34,211,238,0.25) !important}
 .status-crit{border-color:#ff4d4d !important}
 .status-crit:hover{border-color:#ff4d4d !important;box-shadow:var(--shadow),0 0 20px rgba(255,77,77,0.35) !important}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.gauge{position:relative;height:12px;background:var(--bg-hover);border:1px solid var(--border);border-radius:99px;margin:14px 4px 4px;overflow:hidden}
+.gauge-zero{position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:var(--text-muted);transform:translateX(-50%);opacity:.7}
+.gauge-fill{position:absolute;top:0;bottom:0;border-radius:99px;opacity:.55}
+.gauge-labels{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-muted);margin:0 4px 2px}
 .result-orange{color:#f59e0b}
 .result-red{color:#ef4444}
 .no-results{text-align:center;padding:60px 20px;background:var(--bg-card);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;font-size:1.1rem;color:var(--text-muted);grid-column:1/-1}
@@ -160,8 +165,9 @@ html[data-force-chrome] .theme-toggle{display:none}
 </div>
 <div class="results-section">
 <div class="results-grid" id="resultsGrid">
-<div class="no-results">Sélectionnez vos valeurs aux barillets puis cliquez sur « Calculer » pour voir votre solde.</div>
+<div class="no-results">Bougez les barillets, le solde se calcule en direct.</div>
 </div>
+<div class="sr-only" id="liveSummary" aria-live="polite" aria-atomic="true"></div>
 </div>
 </div>
 <script>
@@ -253,16 +259,19 @@ let pct=0;
 function setPct(v){pct=Math.min(100,Math.max(0,Math.round(v*10)/10));paintPct();}
 function pctCombined(){return pct;}
 function paintPct(){document.getElementById('readPct').textContent=fmt(pct)+' %';}
+function saveValues(){try{localStorage.setItem('go-dashboard-values',JSON.stringify({d:wDays.get(),h:wHours.get(),c:pct}));}catch(e){}}
+function liveCalc(){saveValues();calculer();}
 document.addEventListener('DOMContentLoaded',()=>{const toggle=document.getElementById('themeToggle');if(toggle){toggle.addEventListener('click',()=>{if(isChrome)return;const current=document.documentElement.getAttribute('data-theme');const next=current==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('go-dashboard-theme',next);}catch(e){}updateToggleUI(next);});}
 try{const saved=localStorage.getItem('go-dashboard-theme');if(saved==='light'||saved==='dark'){document.documentElement.setAttribute('data-theme',saved);updateToggleUI(saved);}}catch(e){}
-wDays=makeWheel('wheelDays','readDays',{min:0,max:30,step:1,threshold:55,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v===30){if(wHours&&wHours.get()>0){hoursStash=wHours.get();wHours.set(0);}}else if(hoursStash!==null&&wHours&&wHours.get()===0){wHours.set(hoursStash);hoursStash=null;}}});
-wHours=makeWheel('wheelHours','readHours',{min:0,max:23,step:1,threshold:75,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v>0){hoursStash=null;if(wDays&&wDays.get()===30){wDays.set(29);}}}});
-wJogFast=makeJog('wheelPctFast',{rate:1,threshold:60,onNudge:function(d){setPct(pct+d);}});
-wJogFine=makeJog('wheelPctFine',{rate:0.1,threshold:90,onNudge:function(d){setPct(pct+d);}});
+wDays=makeWheel('wheelDays','readDays',{min:0,max:30,step:1,threshold:55,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v===30){if(wHours&&wHours.get()>0){hoursStash=wHours.get();wHours.set(0);}}else if(hoursStash!==null&&wHours&&wHours.get()===0){wHours.set(hoursStash);hoursStash=null;}liveCalc();}});
+wHours=makeWheel('wheelHours','readHours',{min:0,max:23,step:1,threshold:75,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v>0){hoursStash=null;if(wDays&&wDays.get()===30){wDays.set(29);}}liveCalc();}});
+wJogFast=makeJog('wheelPctFast',{rate:1,threshold:60,onNudge:function(d){setPct(pct+d);liveCalc();}});
+wJogFine=makeJog('wheelPctFine',{rate:0.1,threshold:90,onNudge:function(d){setPct(pct+d);liveCalc();}});
 paintPct();
 document.getElementById('calcBtn').addEventListener('click',calculer);
-document.getElementById('resetBtn').addEventListener('click',()=>{wDays.set(0);wHours.set(0);setPct(0);hoursStash=null;document.getElementById('statElapsed').textContent='—';document.getElementById('statConso').textContent='—';document.getElementById('statBalance').textContent='—';document.getElementById('statBalance').style.color='';document.getElementById('resultsGrid').innerHTML='<div class="no-results">Sélectionnez vos valeurs aux barillets puis cliquez sur « Calculer » pour voir votre solde.</div>';});
-window.GoDash={set:function(d,h,c){wDays.set(d);wHours.set(h);setPct(Number(c)||0);},get:function(){return{days:wDays.get(),hours:wHours.get(),conso:pctCombined()};},calc:calculer};
+document.getElementById('resetBtn').addEventListener('click',()=>{wDays.set(0);wHours.set(0);setPct(0);hoursStash=null;try{localStorage.removeItem('go-dashboard-values');}catch(e){}document.getElementById('statElapsed').textContent='—';document.getElementById('statConso').textContent='—';document.getElementById('statBalance').textContent='—';document.getElementById('statBalance').style.color='';document.getElementById('resultsGrid').innerHTML='<div class="no-results">Bougez les barillets, le solde se calcule en direct.</div>';document.getElementById('liveSummary').textContent='';});
+try{const sv=JSON.parse(localStorage.getItem('go-dashboard-values')||'null');if(sv&&isFinite(sv.d)&&isFinite(sv.h)&&isFinite(sv.c)){wDays.set(sv.d);wHours.set(sv.h);setPct(sv.c);calculer();}}catch(e){}
+window.GoDash={set:function(d,h,c){wDays.set(d);wHours.set(h);setPct(Number(c)||0);liveCalc();},get:function(){return{days:wDays.get(),hours:wHours.get(),conso:pctCombined()};},calc:calculer};
 });
 function fmt(n,dec){return n.toFixed(dec===undefined?2:dec).replace('.',',');}
 function calculer(){
@@ -305,11 +314,17 @@ const conseil=status==='cyan'
 :status==='red'
 ?'Vous consommez nettement plus vite que le temps ne passe. Réduisez votre usage pour éviter l\u2019épuisement avant la fin du cycle.'
 :'Situation critique : '+fmt(balance)+' points d\u2019avance. À ce rythme le quota sera épuisé bien avant la fin du cycle — levez le pied immédiatement.';
+const gSpan=Math.max(10,Math.ceil(Math.abs(balance)/10)*10);
+const gFrac=Math.min(1,Math.abs(balance)/gSpan);
+const gW=(gFrac*50).toFixed(1);
+const gLeft=balance>=0?'50':(50-gFrac*50).toFixed(1);
 document.getElementById('resultsGrid').innerHTML=
 '<div class="card status-'+status+'">'+
 '<h3 class="card-title"><span class="status-dot" style="background:'+dotColor+'"></span>Solde de consommation</h3>'+
 '<span class="card-chapter">'+statusLabel+'</span>'+
 '<div class="formula-box"><span class="result-value '+statusClass+'">'+balanceText+'</span></div>'+
+'<div class="gauge" aria-hidden="true"><div class="gauge-zero"></div><div class="gauge-fill" style="left:'+gLeft+'%;width:'+gW+'%;background:'+statusColor+'"></div></div>'+
+'<div class="gauge-labels"><span>-'+gSpan+'</span><span>0 · équilibre</span><span>+'+gSpan+'</span></div>'+
 '<div class="formula-details"><div><span class="detail-label">Détail</span><div class="detail-value">Consommation ('+fmt(conso)+' %) − temps écoulé ('+fmt(elapsedPct)+' %) = '+(balance>0?'+':'')+fmt(balance)+' points.</div></div>'+
 '<div><span class="detail-label">Conseil</span><div class="detail-value">'+conseil+'</div></div></div>'+
 '</div>'+
@@ -331,6 +346,7 @@ document.getElementById('resultsGrid').innerHTML=
 '<div class="formula-box">'+fmt(conso)+' % consommés</div>'+
 '<div class="formula-details"><div><span class="detail-label">Temps restant réel</span><div class="detail-value">'+days+' jour'+(days>1?'s':'')+' et '+hours+' heure'+(hours>1?'s':'')+' restants dans le cycle.</div></div></div>'+
 '</div>';
+const live=document.getElementById('liveSummary');if(live){live.textContent='Solde : '+balanceText+'. Temps écoulé '+fmt(elapsedPct)+' %, consommation '+fmt(conso)+' %.';}
 }
 function afficherErreur(msg){
 document.getElementById('resultsGrid').innerHTML='<div class="no-results">'+msg+'</div>';
