@@ -7,8 +7,8 @@ Single-page GitHub Pages app (un seul fichier `index.html`, sans dépendance sau
 Ouvrir `index.html` dans un navigateur, ou servir le dossier via GitHub Pages. Régler les 3 valeurs avec les barillets (molette, tactile, clic ou flèches du clavier) puis cliquer sur **Calculer** :
 
 1. **Jours restants** dans le cycle (0–30)
-2. **Heures restantes** dans le cycle (0–24)
-3. **Consommation mensuelle** en % (0–100) — double barillet façon microscope : molette rapide (unités) + molette fine (décimales), la valeur combinée s'affiche en dessous
+2. **Heures restantes** dans le cycle (0–23, comme une horloge — le total ne peut jamais dépasser 720 h : à 30 jours les heures retombent à 0)
+3. **Consommation mensuelle** en % (0–100) — vrai principe microscope : un seul curseur partagé, molette rapide (±1 point par cran) + molette fine (±0,1 point par cran), la valeur combinée s'affiche en dessous
 
 ## Calcul
 
