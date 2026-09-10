@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--font-display:'Crimson Pro',serif;--font-body:'DM Sans',sans-serif;--transition:0.3s cubic-bezier(0.4,0,0.2,1)}
+html[data-theme="light"]:not([data-force-chrome]){--primary:#f8fafc;--secondary:#f1f5f9;--tertiary:#e2e8f0;--text:#0f172a;--text-muted:rgba(0,0,0,0.4);--accent:#0d9488;--accent-dim:#0f766e;--bg-card:rgba(255,255,255,0.95);--border:rgba(0,0,0,0.06);--bg-hover:rgba(0,0,0,0.03);--shadow:0 4px 24px rgba(0,0,0,0.06);--glow:0 0 16px rgba(13,148,136,0.15);--focus-ring:rgba(13,148,136,0.15);--btn-shadow:0 5px 20px rgba(13,148,136,0.25)}
+html[data-theme="dark"]:not([data-force-chrome]){--primary:#0d1117;--secondary:#111820;--tertiary:#161b22;--text:#e2e8f0;--text-muted:rgba(255,255,255,0.45);--accent:#4facde;--accent-dim:#3a8ab5;--bg-card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--bg-hover:rgba(255,255,255,0.07);--shadow:0 8px 32px rgba(0,0,0,0.4);--glow:0 0 20px rgba(79,172,222,0.2);--focus-ring:rgba(79,172,222,0.2);--btn-shadow:0 5px 20px rgba(79,172,222,0.25)}
+html[data-force-chrome]{--primary:#30191E;--secondary:#4F3439;--tertiary:#6B4C51;--text:#f8f9fa;--text-muted:rgba(255,255,255,0.6);--accent:#e94560;--accent-dim:#d63951;--bg-card:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.1);--bg-hover:rgba(255,255,255,0.1);--shadow:0 8px 32px rgba(0,0,0,0.5);--glow:0 0 20px rgba(233,69,96,0.3);--focus-ring:rgba(233,69,96,0.2);--btn-shadow:0 5px 20px rgba(233,69,96,0.35)}
+body{font-family:var(--font-body);background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 50%,var(--tertiary) 100%);min-height:100vh;color:var(--text);transition:background var(--transition),color var(--transition)}
+.container{max-width:1600px;margin:0 auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:50px;animation:fadeInDown 0.8s ease-out}
+.header-left{text-align:left}
+.header-right{display:flex;align-items:center;gap:.75rem;flex-shrink:0;padding-top:.25rem}
+h1{font-family:var(--font-display);font-size:3.5rem;font-weight:700;margin-bottom:15px;background:linear-gradient(45deg,var(--text),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{font-size:1.1rem;color:var(--text-muted);font-weight:300}
+.theme-toggle{display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;user-select:none}
+.theme-toggle-label{font-size:.75rem;color:var(--text-muted);font-weight:500}
+.toggle-track{width:42px;height:22px;background:var(--bg-hover);border:1px solid var(--border);border-radius:99px;position:relative;transition:background var(--transition)}
+.toggle-track.active{background:var(--accent)}
+.toggle-thumb{width:16px;height:16px;background:var(--text);border-radius:50%;position:absolute;top:2px;left:3px;transition:transform var(--transition);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.toggle-track.active .toggle-thumb{transform:translateX(20px)}
+html[data-force-chrome] .theme-toggle{display:none}
+.filters-section{background:var(--bg-card);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:20px;padding:30px;margin-bottom:40px;animation:fadeInUp .8s ease-out .2s backwards}
+.filters-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:24px}
+.filter-label{display:block;font-size:.85rem;font-weight:600;margin-bottom:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px}
+.search-input{width:100%;padding:14px 18px;background:var(--bg-hover);border:2px solid var(--border);border-radius:12px;color:var(--text);font-size:.95rem;font-family:var(--font-body);transition:all .3s ease}
+.search-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--focus-ring);background:var(--bg-card)}
+.search-input::placeholder{color:var(--text-muted);opacity:.6}
+.btn{padding:.75rem 1.5rem;background:var(--accent);color:white;border:none;border-radius:12px;font-weight:600;cursor:pointer;transition:all .3s ease;font-family:var(--font-body);font-size:1rem}
+.btn:hover{background:var(--accent-dim);transform:translateY(-2px);box-shadow:var(--btn-shadow)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+.calc-actions{display:flex;gap:12px;flex-wrap:wrap}
+.calc-actions .btn{flex:1;min-width:200px;padding:15px 40px;font-size:1.1rem;font-weight:700}
+.reset-btn{width:100%;padding:10px 16px;background:var(--bg-hover);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .3s ease;text-transform:uppercase;letter-spacing:1px;margin-top:10px;font-family:var(--font-body)}
+.reset-btn:hover{background:var(--accent);border-color:var(--accent);color:white;transform:translateY(-2px)}
+.stats{display:flex;justify-content:center;gap:40px;flex-wrap:wrap;padding-top:24px;border-top:1px solid var(--border)}
+.stat-item{text-align:center}
+.stat-value{font-family:var(--font-display);font-size:2.2rem;font-weight:700;color:var(--accent);display:block}
+.stat-label{font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.results-section{animation:fadeInUp .8s ease-out .4s backwards}
+.results-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.card{position:relative;background:var(--bg-card);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;padding:24px;animation:fadeSlideIn .4s ease;transition:all .3s ease}
+.card:hover{transform:translateY(-5px);border-color:var(--accent);box-shadow:var(--shadow),var(--glow)}
+.card-title{font-family:var(--font-display);font-size:1.2rem;font-weight:600;color:var(--text);margin-bottom:12px;line-height:1.4}
+.card-chapter{display:inline-block;background:var(--bg-hover);color:var(--text-muted);padding:4px 10px;border-radius:6px;font-size:.8rem;margin-bottom:12px}
+.formula-box{background:var(--bg-hover);border:1px solid var(--border);border-radius:10px;padding:16px;margin:12px 0;font-size:1.2rem;text-align:center;color:var(--text);overflow-x:auto;line-height:1.6}
+.formula-details{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px;font-size:.85rem}
+.detail-label{color:var(--text-muted);font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px}
+.detail-value{color:var(--text);line-height:1.5}
+.status-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:baseline}
+.status-green{border-color:#22c55e !important}
+.status-green:hover{border-color:#22c55e !important;box-shadow:var(--shadow),0 0 20px rgba(34,197,94,0.25) !important}
+.status-orange{border-color:#f59e0b !important}
+.status-orange:hover{border-color:#f59e0b !important;box-shadow:var(--shadow),0 0 20px rgba(245,158,11,0.25) !important}
+.status-red{border-color:#ef4444 !important}
+.status-red:hover{border-color:#ef4444 !important;box-shadow:var(--shadow),0 0 20px rgba(239,68,68,0.3) !important}
+.result-value{font-family:var(--font-display);font-size:2rem;font-weight:700;line-height:1.3;text-align:center}
+.result-green{color:#22c55e}
+.result-orange{color:#f59e0b}
+.result-red{color:#ef4444}
+.no-results{text-align:center;padding:60px 20px;background:var(--bg-card);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;font-size:1.1rem;color:var(--text-muted);grid-column:1/-1}
+.hint{font-size:.85rem;color:var(--text-muted);margin-top:12px;line-height:1.6}
+@keyframes fadeInDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:560px){h1{font-size:2.2rem}.filters-grid,.results-grid{grid-template-columns:1fr}.stats{gap:16px}header{flex-direction:column;gap:16px}.filters-section{padding:20px}.container{padding:12px}.card{padding:16px}.card-title{font-size:1.05rem}.formula-box{padding:12px;font-size:1rem}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<div class="header-left">
+<h1>Go Dashboard</h1>
+<p class="subtitle">Suivi du solde d'abonnement OpenCode Go — avance ou retard de consommation sur un cycle de 30 jours</p>
+</div>
+<div class="header-right">
+<label class="theme-toggle" id="themeToggle" title="Basculer clair/nuit">
+<span class="theme-toggle-label" id="themeLabel">Jour</span>
+<div class="toggle-track active" id="toggleTrack">
+<div class="toggle-thumb"></div>
+</div>
+</label>
+</div>
+</header>
+<div class="filters-section">
+<div class="filters-grid">
+<div class="filter-group">
+<label class="filter-label" for="inputDays">📅 Jours restants</label>
+<input type="number" id="inputDays" class="search-input" placeholder="Ex. 12" min="0" max="30" step="1" value="">
+</div>
+<div class="filter-group">
+<label class="filter-label" for="inputHours">⏰ Heures restantes</label>
+<input type="number" id="inputHours" class="search-input" placeholder="Ex. 8" min="0" max="24" step="1" value="">
+</div>
+<div class="filter-group">
+<label class="filter-label" for="inputConso">📊 Consommation mensuelle (%)</label>
+<input type="number" id="inputConso" class="search-input" placeholder="Ex. 45" min="0" max="100" step="0.1" value="">
+</div>
+</div>
+<div class="calc-actions">
+<button class="btn" id="calcBtn">Calculer</button>
+</div>
+<button class="reset-btn" id="resetBtn">Réinitialiser</button>
+<div class="stats" id="statsBar">
+<div class="stat-item">
+<span class="stat-value" id="statElapsed">—</span>
+<span class="stat-label">Temps écoulé</span>
+</div>
+<div class="stat-item">
+<span class="stat-value" id="statConso">—</span>
+<span class="stat-label">Consommation</span>
+</div>
+<div class="stat-item">
+<span class="stat-value" id="statBalance">—</span>
+<span class="stat-label">Solde</span>
+</div>
+</div>
+<p class="hint">Cycle de facturation de 30 jours (720 heures). Solde = consommation − temps écoulé. Un solde positif signifie que vous consommez plus vite que le temps ne passe (en avance) ; un solde négatif signifie que vous consommez plus lentement (en retard, donc prudent).</p>
+</div>
+<div class="results-section">
+<div class="results-grid" id="resultsGrid">
+<div class="no-results">Renseignez les 3 valeurs puis cliquez sur « Calculer » pour voir votre solde.</div>
+</div>
+</div>
+</div>
+<script>
+const isChrome=/Chrome/.test(navigator.userAgent)&&/Google Inc/.test(navigator.vendor);
+if(isChrome){document.documentElement.setAttribute('data-force-chrome','');}
+function updateToggleUI(theme){const track=document.getElementById('toggleTrack');const label=document.getElementById('themeLabel');if(!track||!label)return;if(theme==='dark'){track.classList.add('active');label.textContent='Jour';}else{track.classList.remove('active');label.textContent='Nuit';}}
+document.addEventListener('DOMContentLoaded',()=>{const toggle=document.getElementById('themeToggle');if(toggle){toggle.addEventListener('click',()=>{if(isChrome)return;const current=document.documentElement.getAttribute('data-theme');const next=current==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('go-dashboard-theme',next);}catch(e){}updateToggleUI(next);});}
+try{const saved=localStorage.getItem('go-dashboard-theme');if(saved==='light'||saved==='dark'){document.documentElement.setAttribute('data-theme',saved);updateToggleUI(saved);}}catch(e){}
+const d=document.getElementById('inputDays');const h=document.getElementById('inputHours');const c=document.getElementById('inputConso');
+[d,h,c].forEach(el=>{el.addEventListener('keydown',e=>{if(e.key==='Enter'){calculer();}});});
+document.getElementById('calcBtn').addEventListener('click',calculer);
+document.getElementById('resetBtn').addEventListener('click',()=>{d.value='';h.value='';c.value='';document.getElementById('statElapsed').textContent='—';document.getElementById('statConso').textContent='—';document.getElementById('statBalance').textContent='—';document.getElementById('resultsGrid').innerHTML='<div class="no-results">Renseignez les 3 valeurs puis cliquez sur « Calculer » pour voir votre solde.</div>';});
+});
+function clamp(v,min,max){v=Number(v);if(isNaN(v))return NaN;return Math.min(max,Math.max(min,v));}
+function fmt(n,dec){return n.toFixed(dec===undefined?2:dec).replace('.',',');}
+function calculer(){
+const daysRaw=document.getElementById('inputDays').value;
+const hoursRaw=document.getElementById('inputHours').value;
+const consoRaw=document.getElementById('inputConso').value;
+if(daysRaw===''||hoursRaw===''||consoRaw===''){afficherErreur('Veuillez renseigner les 3 valeurs : jours restants, heures restantes et consommation (%).');return;}
+let days=clamp(daysRaw,0,30);
+let hours=clamp(hoursRaw,0,24);
+let conso=clamp(consoRaw,0,100);
+if(isNaN(days)||isNaN(hours)||isNaN(conso)){afficherErreur('Valeurs invalides. Vérifiez vos saisies (jours : 0–30, heures : 0–24, consommation : 0–100 %).');return;}
+const TOTAL=30*24;
+const elapsedHours=(30-days)*24+(24-hours);
+const elapsedClamped=Math.min(TOTAL,Math.max(0,elapsedHours));
+const elapsedPct=elapsedClamped/TOTAL*100;
+const balance=conso-elapsedPct;
+const remainingEqHours=TOTAL*(1-conso/100);
+let eqD=Math.floor(remainingEqHours/24);
+let eqH=Math.round(remainingEqHours-eqD*24);
+if(eqH===24){eqD+=1;eqH=0;}
+if(eqD>30){eqD=30;eqH=0;}
+if(eqD<0){eqD=0;eqH=0;}
+let status,statusLabel,statusClass;
+if(balance<=2){status='green';statusClass='result-green';}
+else if(balance<=10){status='orange';statusClass='result-orange';}
+else{status='red';statusClass='result-red';}
+let balanceText;
+if(Math.abs(balance)<0.005){balanceText='Équilibre parfait (0,00 point)';statusLabel='Équilibré';}
+else if(balance>0){balanceText='Avance de '+fmt(balance)+' points';statusLabel='En avance';}
+else{balanceText='Retard de '+fmt(Math.abs(balance))+' points';statusLabel='En retard';}
+document.getElementById('statElapsed').textContent=fmt(elapsedPct)+' %';
+document.getElementById('statConso').textContent=fmt(conso)+' %';
+const sb=document.getElementById('statBalance');
+sb.textContent=(balance>0?'+':'')+fmt(balance);
+sb.style.color=status==='green'?'#22c55e':status==='orange'?'#f59e0b':'#ef4444';
+const dotColor=status==='green'?'#22c55e':status==='orange'?'#f59e0b':'#ef4444';
+const conseil=status==='green'
+'Votre consommation est alignée (ou en dessous) du temps écoulé. Rythme sain, continuez ainsi.'
+:status==='orange'
+?'Vous consommez plus vite que le temps ne passe. Surveillez votre usage pour tenir jusqu\u2019à la fin du cycle.'
+:'Vous consommez nettement plus vite que le temps ne passe. Réduisez votre usage pour éviter l\u2019épuisement avant la fin du cycle.';
+document.getElementById('resultsGrid').innerHTML=
+'<div class="card status-'+status+'">'+
+'<h3 class="card-title"><span class="status-dot" style="background:'+dotColor+'"></span>Solde de consommation</h3>'+
+'<span class="card-chapter">'+statusLabel+'</span>'+
+'<div class="formula-box"><span class="result-value '+statusClass+'">'+balanceText+'</span></div>'+
+'<div class="formula-details"><div><span class="detail-label">Détail</span><div class="detail-value">Consommation ('+fmt(conso)+' %) − temps écoulé ('+fmt(elapsedPct)+' %) = '+(balance>0?'+':'')+fmt(balance)+' points.</div></div>'+
+'<div><span class="detail-label">Conseil</span><div class="detail-value">'+conseil+'</div></div></div>'+
+'</div>'+
+'<div class="card">'+
+'<h3 class="card-title">⚖️ Équilibre théorique</h3>'+
+'<span class="card-chapter">Rythme neutre</span>'+
+'<div class="formula-box"><span class="result-value">Équilibre théorique : '+eqD+' jour'+(eqD>1?'s':'')+' '+eqH+' heure'+(eqH>1?'s':'')+'</span></div>'+
+'<div class="formula-details"><div><span class="detail-label">Interprétation</span><div class="detail-value">Avec une consommation de '+fmt(conso)+' %, vous seriez à l\u2019équilibre s\u2019il vous restait '+eqD+' jour'+(eqD>1?'s':'')+' et '+eqH+' heure'+(eqH>1?'s':'')+' dans le cycle.</div></div></div>'+
+'</div>'+
+'<div class="card">'+
+'<h3 class="card-title">⏳ Temps écoulé</h3>'+
+'<span class="card-chapter">Cycle de 30 jours</span>'+
+'<div class="formula-box">'+fmt(elapsedPct)+' % du cycle écoulé</div>'+
+'<div class="formula-details"><div><span class="detail-label">Calcul</span><div class="detail-value">((30 − '+days+') × 24 + (24 − '+hours+')) ÷ 720 × 100 = '+fmt(elapsedPct)+' %.</div></div></div>'+
+'</div>'+
+'<div class="card">'+
+'<h3 class="card-title">📊 Consommation</h3>'+
+'<span class="card-chapter">Quota mensuel</span>'+
+'<div class="formula-box">'+fmt(conso)+' % consommés</div>'+
+'<div class="formula-details"><div><span class="detail-label">Temps restant réel</span><div class="detail-value">'+days+' jour'+(days>1?'s':'')+' et '+hours+' heure'+(hours>1?'s':'')+' restants dans le cycle.</div></div></div>'+
+'</div>';
+}
+function afficherErreur(msg){
+document.getElementById('resultsGrid').innerHTML='<div class="no-results">'+msg+'</div>';
+}
+</script>
+</body>
+</html>
