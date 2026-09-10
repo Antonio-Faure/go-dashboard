@@ -20,9 +20,11 @@ Ouvrir `index.html` dans un navigateur, ou servir le dossier via GitHub Pages. R
 
 ## Code couleur
 
-- 🟢 Vert : solde ≤ 0 (en retard ou à l'équilibre — rythme sûr, il restera du quota)
+- 🩵 Cyan : solde ≤ −10 (largement en retard — énorme marge, on peut consommer à toute berzingue)
+- 🟢 Vert : solde entre −10 et 0 (en retard ou à l'équilibre — rythme sûr)
 - 🟠 Orange : solde entre 0 et 10 points (en avance, à surveiller)
-- 🔴 Rouge : solde > 10 points (nettement en avance, risque d'épuisement avant la fin du cycle)
+- 🔴 Rouge : solde entre 10 et 20 points (largement en avance, réduire l'usage)
+- 🚨 Rouge vif : solde > 20 points (critique, le quota sera épuisé bien avant la fin du cycle)
 
 ## Design
 

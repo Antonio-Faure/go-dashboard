@@ -64,6 +64,12 @@ html[data-force-chrome] .theme-toggle{display:none}
 .status-red:hover{border-color:#ef4444 !important;box-shadow:var(--shadow),0 0 20px rgba(239,68,68,0.3) !important}
 .result-value{font-family:var(--font-display);font-size:2rem;font-weight:700;line-height:1.3;text-align:center}
 .result-green{color:#22c55e}
+.result-cyan{color:#22d3ee}
+.result-crit{color:#ff4d4d}
+.status-cyan{border-color:#22d3ee !important}
+.status-cyan:hover{border-color:#22d3ee !important;box-shadow:var(--shadow),0 0 20px rgba(34,211,238,0.25) !important}
+.status-crit{border-color:#ff4d4d !important}
+.status-crit:hover{border-color:#ff4d4d !important;box-shadow:var(--shadow),0 0 20px rgba(255,77,77,0.35) !important}
 .result-orange{color:#f59e0b}
 .result-red{color:#ef4444}
 .no-results{text-align:center;padding:60px 20px;background:var(--bg-card);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;font-size:1.1rem;color:var(--text-muted);grid-column:1/-1}
@@ -164,10 +170,12 @@ let eqH=Math.round(remainingEqHours-eqD*24);
 if(eqH===24){eqD+=1;eqH=0;}
 if(eqD>30){eqD=30;eqH=0;}
 if(eqD<0){eqD=0;eqH=0;}
-let status,statusLabel,statusClass;
-if(balance<=0){status='green';statusClass='result-green';}
-else if(balance<=10){status='orange';statusClass='result-orange';}
-else{status='red';statusClass='result-red';}
+let status,statusLabel,statusClass,statusColor;
+if(balance<=-10){status='cyan';statusClass='result-cyan';statusColor='#22d3ee';statusLabel='Largement en retard';}
+else if(balance<=0){status='green';statusClass='result-green';statusColor='#22c55e';statusLabel='En retard';}
+else if(balance<=10){status='orange';statusClass='result-orange';statusColor='#f59e0b';statusLabel='En avance';}
+else if(balance<=20){status='red';statusClass='result-red';statusColor='#ef4444';statusLabel='Largement en avance';}
+else{status='crit';statusClass='result-crit';statusColor='#ff4d4d';statusLabel='🚨 Critique';}
 let balanceText;
 if(Math.abs(balance)<0.005){balanceText='Équilibre parfait (0,00 point)';statusLabel='Équilibré';}
 else if(balance>0){balanceText='Avance de '+fmt(balance)+' points';statusLabel='En avance';}
@@ -176,13 +184,17 @@ document.getElementById('statElapsed').textContent=fmt(elapsedPct)+' %';
 document.getElementById('statConso').textContent=fmt(conso)+' %';
 const sb=document.getElementById('statBalance');
 sb.textContent=(balance>0?'+':'')+fmt(balance);
-sb.style.color=status==='green'?'#22c55e':status==='orange'?'#f59e0b':'#ef4444';
-const dotColor=status==='green'?'#22c55e':status==='orange'?'#f59e0b':'#ef4444';
-const conseil=status==='green'
+sb.style.color=statusColor;
+const dotColor=statusColor;
+const conseil=status==='cyan'
+?'Énorme marge de '+fmt(Math.abs(balance))+' points : vous pouvez consommer à toute berzingue, le quota tiendra largement jusqu\u2019à la fin du cycle.'
+:status==='green'
 ?'Votre consommation est alignée (ou en dessous) du temps écoulé. Rythme sain, continuez ainsi.'
 :status==='orange'
 ?'Vous consommez plus vite que le temps ne passe. Surveillez votre usage pour tenir jusqu\u2019à la fin du cycle.'
-:'Vous consommez nettement plus vite que le temps ne passe. Réduisez votre usage pour éviter l\u2019épuisement avant la fin du cycle.';
+:status==='red'
+?'Vous consommez nettement plus vite que le temps ne passe. Réduisez votre usage pour éviter l\u2019épuisement avant la fin du cycle.'
+:'Situation critique : '+fmt(balance)+' points d\u2019avance. À ce rythme le quota sera épuisé bien avant la fin du cycle — levez le pied immédiatement.';
 document.getElementById('resultsGrid').innerHTML=
 '<div class="card status-'+status+'">'+
 '<h3 class="card-title"><span class="status-dot" style="background:'+dotColor+'"></span>Solde de consommation</h3>'+
