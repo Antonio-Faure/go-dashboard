@@ -37,6 +37,18 @@ html[data-force-chrome] .theme-toggle{display:none}
 .btn:hover{background:var(--accent-dim);transform:translateY(-2px);box-shadow:var(--btn-shadow)}
 .btn:active{transform:translateY(0)}
 .btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
+.pickers-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-bottom:24px;justify-items:center}
+.wheel-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;padding:4px 0}
+.wheel-box{position:relative;width:130px;height:240px}
+.wheel-box.narrow{width:104px}
+.wheel-window{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);height:48px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg-hover);border-radius:10px;pointer-events:none}
+.wheel-col{position:relative;width:100%;height:100%;overflow:hidden;cursor:ns-resize;outline:none;border-radius:10px}
+.wheel-col:focus-visible{box-shadow:0 0 0 4px var(--focus-ring)}
+.wheel-track{transition:transform .32s cubic-bezier(0.2,0.75,0.2,1)}
+.wheel-item{height:48px;display:flex;align-items:center;justify-content:center;font-size:20px;font-family:var(--font-body);transition:color .25s ease,transform .25s cubic-bezier(0.2,0.75,0.2,1),opacity .25s ease;color:var(--text-muted);transform-origin:center;user-select:none}
+.wheel-readout{font-family:var(--font-display);font-size:1.9rem;font-weight:700;color:var(--accent);text-align:center;transition:transform .18s cubic-bezier(0.34,1.56,0.64,1);line-height:1.2}
+.wheel-sub{font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;text-align:center}
+.dual{display:flex;gap:14px;justify-content:center}
 .calc-actions{display:flex;gap:12px;flex-wrap:wrap}
 .calc-actions .btn{flex:1;min-width:200px;padding:15px 40px;font-size:1.1rem;font-weight:700}
 .reset-btn{width:100%;padding:10px 16px;background:var(--bg-hover);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .3s ease;text-transform:uppercase;letter-spacing:1px;margin-top:10px;font-family:var(--font-body)}
@@ -77,7 +89,7 @@ html[data-force-chrome] .theme-toggle{display:none}
 @keyframes fadeInDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@media(max-width:560px){h1{font-size:2.2rem}.filters-grid,.results-grid{grid-template-columns:1fr}.stats{gap:16px}header{flex-direction:column;gap:16px}.filters-section{padding:20px}.container{padding:12px}.card{padding:16px}.card-title{font-size:1.05rem}.formula-box{padding:12px;font-size:1rem}}
+@media(max-width:560px){h1{font-size:2.2rem}.filters-grid,.pickers-grid,.results-grid{grid-template-columns:1fr}.stats{gap:16px}header{flex-direction:column;gap:16px}.filters-section{padding:20px}.container{padding:12px}.card{padding:16px}.card-title{font-size:1.05rem}.formula-box{padding:12px;font-size:1rem}}
 </style>
 </head>
 <body>
@@ -97,18 +109,30 @@ html[data-force-chrome] .theme-toggle{display:none}
 </div>
 </header>
 <div class="filters-section">
-<div class="filters-grid">
+<div class="pickers-grid">
 <div class="filter-group">
-<label class="filter-label" for="inputDays">📅 Jours restants</label>
-<input type="number" id="inputDays" class="search-input" placeholder="Ex. 12" min="0" max="30" step="1" value="">
+<span class="filter-label">📅 Jours restants</span>
+<div class="wheel-wrap">
+<div class="wheel-box"><div class="wheel-window"></div><div class="wheel-col" id="wheelDays" tabindex="0" role="listbox" aria-label="Jours restants, 0 à 30"></div></div>
+<div><div class="wheel-readout" id="readDays">0</div><div class="wheel-sub">jours restants</div></div>
+</div>
 </div>
 <div class="filter-group">
-<label class="filter-label" for="inputHours">⏰ Heures restantes</label>
-<input type="number" id="inputHours" class="search-input" placeholder="Ex. 8" min="0" max="24" step="1" value="">
+<span class="filter-label">⏰ Heures restantes</span>
+<div class="wheel-wrap">
+<div class="wheel-box"><div class="wheel-window"></div><div class="wheel-col" id="wheelHours" tabindex="0" role="listbox" aria-label="Heures restantes, 0 à 24"></div></div>
+<div><div class="wheel-readout" id="readHours">0</div><div class="wheel-sub">heures restantes</div></div>
+</div>
 </div>
 <div class="filter-group">
-<label class="filter-label" for="inputConso">📊 Consommation mensuelle (%)</label>
-<input type="number" id="inputConso" class="search-input" placeholder="Ex. 45" min="0" max="100" step="0.1" value="">
+<span class="filter-label">📊 Consommation mensuelle</span>
+<div class="wheel-wrap">
+<div class="dual">
+<div class="wheel-box narrow"><div class="wheel-window"></div><div class="wheel-col" id="wheelPctInt" tabindex="0" role="listbox" aria-label="Consommation, molette rapide, unités"></div></div>
+<div class="wheel-box narrow"><div class="wheel-window"></div><div class="wheel-col" id="wheelPctDec" tabindex="0" role="listbox" aria-label="Consommation, molette fine, décimales"></div></div>
+</div>
+<div><div class="wheel-readout" id="readPct">0,0 %</div><div class="wheel-sub">rapide + fine — consommation</div></div>
+</div>
 </div>
 </div>
 <div class="calc-actions">
@@ -129,11 +153,11 @@ html[data-force-chrome] .theme-toggle{display:none}
 <span class="stat-label">Solde</span>
 </div>
 </div>
-<p class="hint">Cycle de facturation de 30 jours (720 heures). Solde = consommation − temps écoulé. Un solde positif signifie que vous consommez plus vite que le temps ne passe (en avance) ; un solde négatif signifie que vous consommez plus lentement (en retard, donc prudent).</p>
+<p class="hint">Cycle de facturation de 30 jours (720 heures). Faites défiler les barillets à la molette, au doigt, au clic ou au clavier (flèches) — pour la consommation, combinez la molette rapide (unités) et la molette fine (décimales), comme un microscope. Solde = consommation − temps écoulé. Un solde positif signifie que vous consommez plus vite que le temps ne passe (en avance) ; un solde négatif signifie que vous consommez plus lentement (en retard, donc prudent).</p>
 </div>
 <div class="results-section">
 <div class="results-grid" id="resultsGrid">
-<div class="no-results">Renseignez les 3 valeurs puis cliquez sur « Calculer » pour voir votre solde.</div>
+<div class="no-results">Sélectionnez vos valeurs aux barillets puis cliquez sur « Calculer » pour voir votre solde.</div>
 </div>
 </div>
 </div>
@@ -141,24 +165,60 @@ html[data-force-chrome] .theme-toggle{display:none}
 const isChrome=/Chrome/.test(navigator.userAgent)&&/Google Inc/.test(navigator.vendor);
 if(isChrome){document.documentElement.setAttribute('data-force-chrome','');}
 function updateToggleUI(theme){const track=document.getElementById('toggleTrack');const label=document.getElementById('themeLabel');if(!track||!label)return;if(theme==='dark'){track.classList.add('active');label.textContent='Jour';}else{track.classList.remove('active');label.textContent='Nuit';}}
+function makeWheel(colId,readId,opts){
+const ITEM_H=48,HALF=2,THRESHOLD=42;
+const col=document.getElementById(colId);
+const read=readId?document.getElementById(readId):null;
+const count=Math.round((opts.max-opts.min)/opts.step);
+const values=[];for(let i=0;i<=count;i++){values.push(Math.round((opts.min+i*opts.step)*100)/100);}
+const track=document.createElement('div');track.className='wheel-track';
+const padTop=document.createElement('div');padTop.style.height=(ITEM_H*HALF)+'px';track.appendChild(padTop);
+const items=values.map(function(v,i){const it=document.createElement('div');it.className='wheel-item';it.dataset.i=i;it.textContent=opts.format(v);track.appendChild(it);return it;});
+const padBottom=document.createElement('div');padBottom.style.height=(ITEM_H*HALF)+'px';track.appendChild(padBottom);
+col.appendChild(track);
+let idx=0;
+function paint(animate){
+track.style.transform='translateY('+(-(idx*ITEM_H))+'px)';
+items.forEach(function(it,i){
+const dist=Math.abs(i-idx);
+if(dist===0){it.style.color='var(--accent)';it.style.fontWeight='700';it.style.opacity='1';it.style.transform='scale(1.1)';}
+else if(dist===1){it.style.color='var(--text)';it.style.fontWeight='400';it.style.opacity='0.75';it.style.transform='scale(0.9)';}
+else if(dist===2){it.style.color='var(--text-muted)';it.style.fontWeight='400';it.style.opacity='0.45';it.style.transform='scale(0.8)';}
+else{it.style.color='var(--text-muted)';it.style.fontWeight='400';it.style.opacity='0.2';it.style.transform='scale(0.72)';}
+});
+if(read){read.textContent=opts.read(values[idx]);if(animate){read.style.transform='scale(1.15)';setTimeout(function(){read.style.transform='scale(1)';},180);}}
+}
+function setIndex(i,animate){i=Math.min(values.length-1,Math.max(0,i));if(i===idx)return;idx=i;paint(animate!==false);if(opts.onChange)opts.onChange(values[idx]);}
+let accum=0;
+col.addEventListener('wheel',function(e){e.preventDefault();accum+=e.deltaY;while(accum>=THRESHOLD){setIndex(idx+1);accum-=THRESHOLD;}while(accum<=-THRESHOLD){setIndex(idx-1);accum+=THRESHOLD;}},{passive:false});
+col.addEventListener('click',function(e){const t=e.target&&e.target.closest?e.target.closest('.wheel-item'):null;if(!t)return;setIndex(parseInt(t.dataset.i,10));});
+let touchY=null,touchAcc=0;
+col.addEventListener('touchstart',function(e){touchY=e.touches[0].clientY;touchAcc=0;},{passive:true});
+col.addEventListener('touchmove',function(e){if(touchY===null)return;const dy=touchY-e.touches[0].clientY;touchAcc+=dy;touchY=e.touches[0].clientY;while(touchAcc>=THRESHOLD){setIndex(idx+1);touchAcc-=THRESHOLD;}while(touchAcc<=-THRESHOLD){setIndex(idx-1);touchAcc+=THRESHOLD;}},{passive:true});
+col.addEventListener('keydown',function(e){if(e.key==='ArrowDown'||e.key==='ArrowRight'){setIndex(idx+1);e.preventDefault();}else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){setIndex(idx-1);e.preventDefault();}});
+paint(false);
+return{get:function(){return values[idx];},set:function(v){let best=0,bd=Infinity;values.forEach(function(x,i){const d=Math.abs(x-v);if(d<bd){bd=d;best=i;}});setIndex(best);}};
+}
+let wDays,wHours,wPctInt,wPctDec;
+function pctCombined(){return Math.min(100,Math.round((wPctInt.get()+wPctDec.get())*10)/10);}
+function paintPct(){document.getElementById('readPct').textContent=fmt(pctCombined())+' %';}
 document.addEventListener('DOMContentLoaded',()=>{const toggle=document.getElementById('themeToggle');if(toggle){toggle.addEventListener('click',()=>{if(isChrome)return;const current=document.documentElement.getAttribute('data-theme');const next=current==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('go-dashboard-theme',next);}catch(e){}updateToggleUI(next);});}
 try{const saved=localStorage.getItem('go-dashboard-theme');if(saved==='light'||saved==='dark'){document.documentElement.setAttribute('data-theme',saved);updateToggleUI(saved);}}catch(e){}
-const d=document.getElementById('inputDays');const h=document.getElementById('inputHours');const c=document.getElementById('inputConso');
-[d,h,c].forEach(el=>{el.addEventListener('keydown',e=>{if(e.key==='Enter'){calculer();}});});
+wDays=makeWheel('wheelDays','readDays',{min:0,max:30,step:1,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));}});
+wHours=makeWheel('wheelHours','readHours',{min:0,max:24,step:1,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));}});
+wPctInt=makeWheel('wheelPctInt',null,{min:0,max:100,step:1,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:paintPct});
+wPctDec=makeWheel('wheelPctDec',null,{min:0,max:0.9,step:0.1,format:function(v){return fmt(v);},read:function(v){return fmt(v);},onChange:paintPct});
+paintPct();
 document.getElementById('calcBtn').addEventListener('click',calculer);
-document.getElementById('resetBtn').addEventListener('click',()=>{d.value='';h.value='';c.value='';document.getElementById('statElapsed').textContent='—';document.getElementById('statConso').textContent='—';document.getElementById('statBalance').textContent='—';document.getElementById('resultsGrid').innerHTML='<div class="no-results">Renseignez les 3 valeurs puis cliquez sur « Calculer » pour voir votre solde.</div>';});
+document.getElementById('resetBtn').addEventListener('click',()=>{wDays.set(0);wHours.set(0);wPctInt.set(0);wPctDec.set(0);paintPct();document.getElementById('statElapsed').textContent='—';document.getElementById('statConso').textContent='—';document.getElementById('statBalance').textContent='—';document.getElementById('statBalance').style.color='';document.getElementById('resultsGrid').innerHTML='<div class="no-results">Sélectionnez vos valeurs aux barillets puis cliquez sur « Calculer » pour voir votre solde.</div>';});
+window.GoDash={set:function(d,h,c){c=Math.min(100,Math.max(0,Number(c)||0));wDays.set(d);wHours.set(h);wPctInt.set(Math.floor(c));wPctDec.set(Math.round((c%1)*10)/10);paintPct();},get:function(){return{days:wDays.get(),hours:wHours.get(),conso:pctCombined()};},calc:calculer};
 });
 function clamp(v,min,max){v=Number(v);if(isNaN(v))return NaN;return Math.min(max,Math.max(min,v));}
 function fmt(n,dec){return n.toFixed(dec===undefined?2:dec).replace('.',',');}
 function calculer(){
-const daysRaw=document.getElementById('inputDays').value;
-const hoursRaw=document.getElementById('inputHours').value;
-const consoRaw=document.getElementById('inputConso').value;
-if(daysRaw===''||hoursRaw===''||consoRaw===''){afficherErreur('Veuillez renseigner les 3 valeurs : jours restants, heures restantes et consommation (%).');return;}
-let days=clamp(daysRaw,0,30);
-let hours=clamp(hoursRaw,0,24);
-let conso=clamp(consoRaw,0,100);
-if(isNaN(days)||isNaN(hours)||isNaN(conso)){afficherErreur('Valeurs invalides. Vérifiez vos saisies (jours : 0–30, heures : 0–24, consommation : 0–100 %).');return;}
+const days=wDays.get();
+const hours=wHours.get();
+const conso=pctCombined();
 const TOTAL=30*24;
 const remainingHours=days*24+hours;
 const elapsedClamped=Math.min(TOTAL,Math.max(0,TOTAL-remainingHours));
