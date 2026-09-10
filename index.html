@@ -179,7 +179,7 @@ sb.textContent=(balance>0?'+':'')+fmt(balance);
 sb.style.color=status==='green'?'#22c55e':status==='orange'?'#f59e0b':'#ef4444';
 const dotColor=status==='green'?'#22c55e':status==='orange'?'#f59e0b':'#ef4444';
 const conseil=status==='green'
-'Votre consommation est alignée (ou en dessous) du temps écoulé. Rythme sain, continuez ainsi.'
+?'Votre consommation est alignée (ou en dessous) du temps écoulé. Rythme sain, continuez ainsi.'
 :status==='orange'
 ?'Vous consommez plus vite que le temps ne passe. Surveillez votre usage pour tenir jusqu\u2019à la fin du cycle.'
 :'Vous consommez nettement plus vite que le temps ne passe. Réduisez votre usage pour éviter l\u2019épuisement avant la fin du cycle.';
