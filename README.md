@@ -20,8 +20,8 @@ Ouvrir `index.html` dans un navigateur, ou servir le dossier via GitHub Pages. R
 
 ## Code couleur
 
-- 🟢 Vert : solde ≤ 2 points (équilibré ou en retard)
-- 🟠 Orange : solde entre 2 et 10 points (en avance, à surveiller)
+- 🟢 Vert : solde ≤ 0 (en retard ou à l'équilibre — rythme sûr, il restera du quota)
+- 🟠 Orange : solde entre 0 et 10 points (en avance, à surveiller)
 - 🔴 Rouge : solde > 10 points (nettement en avance, risque d'épuisement avant la fin du cycle)
 
 ## Design
