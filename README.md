@@ -8,7 +8,7 @@ Ouvrir `index.html` dans un navigateur, ou servir le dossier via GitHub Pages. R
 
 1. **Jours restants** dans le cycle (0–30)
 2. **Heures restantes** dans le cycle (0–23, comme une horloge — le total ne peut jamais dépasser 720 h : à 30 jours les heures retombent à 0)
-3. **Consommation mensuelle** en % (0–100) — vrai principe microscope : un seul curseur partagé, molette rapide (±1 point par cran) + molette fine (±0,1 point par cran), la valeur combinée s'affiche en dessous
+3. **Consommation mensuelle** en % (0–100) — vrai principe microscope : un seul curseur partagé, deux boutons à crans sans fin (rapide ±1 point par cran, fine ±0,1 point par cran), la valeur combinée s'affiche en dessous. Chaque impulsion molette = 1 cran max, pas de saut.
 
 ## Calcul
 

@@ -49,6 +49,9 @@ html[data-force-chrome] .theme-toggle{display:none}
 .wheel-readout{font-family:var(--font-display);font-size:1.9rem;font-weight:700;color:var(--accent);text-align:center;transition:transform .18s cubic-bezier(0.34,1.56,0.64,1);line-height:1.2}
 .wheel-sub{font-size:.8rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;text-align:center}
 .dual{display:flex;gap:14px;justify-content:center}
+.jog-cap{margin-bottom:8px}
+.jog-tick{display:block;width:4px;height:22px;border-radius:2px;background:var(--text-muted);opacity:.45;margin:0 auto}
+.jog-tick.tall{height:30px}
 .calc-actions{display:flex;gap:12px;flex-wrap:wrap}
 .calc-actions .btn{flex:1;min-width:200px;padding:15px 40px;font-size:1.1rem;font-weight:700}
 .reset-btn{width:100%;padding:10px 16px;background:var(--bg-hover);border:2px solid var(--border);border-radius:10px;color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .3s ease;text-transform:uppercase;letter-spacing:1px;margin-top:10px;font-family:var(--font-body)}
@@ -128,8 +131,8 @@ html[data-force-chrome] .theme-toggle{display:none}
 <span class="filter-label">📊 Consommation mensuelle</span>
 <div class="wheel-wrap">
 <div class="dual">
-<div class="wheel-box narrow"><div class="wheel-window"></div><div class="wheel-col" id="wheelPctFast" tabindex="0" role="listbox" aria-label="Consommation, molette rapide : un cran égale 1 point"></div></div>
-<div class="wheel-box narrow"><div class="wheel-window"></div><div class="wheel-col" id="wheelPctFine" tabindex="0" role="listbox" aria-label="Consommation, molette fine : un cran égale 0,1 point"></div></div>
+<div><div class="wheel-sub jog-cap">Rapide</div><div class="wheel-box narrow"><div class="wheel-window"></div><div class="wheel-col" id="wheelPctFast" tabindex="0" role="listbox" aria-label="Consommation, molette rapide : un cran égale 1 point"></div></div></div>
+<div><div class="wheel-sub jog-cap">Fine</div><div class="wheel-box narrow"><div class="wheel-window"></div><div class="wheel-col" id="wheelPctFine" tabindex="0" role="listbox" aria-label="Consommation, molette fine : un cran égale 0,1 point"></div></div></div>
 </div>
 <div><div class="wheel-readout" id="readPct">0,0 %</div><div class="wheel-sub">rapide ±1 · fine ±0,1 — même curseur</div></div>
 </div>
@@ -165,6 +168,18 @@ html[data-force-chrome] .theme-toggle{display:none}
 const isChrome=/Chrome/.test(navigator.userAgent)&&/Google Inc/.test(navigator.vendor);
 if(isChrome){document.documentElement.setAttribute('data-force-chrome','');}
 function updateToggleUI(theme){const track=document.getElementById('toggleTrack');const label=document.getElementById('themeLabel');if(!track||!label)return;if(theme==='dark'){track.classList.add('active');label.textContent='Jour';}else{track.classList.remove('active');label.textContent='Nuit';}}
+function feeder(TH){
+let accum=0,lastT=0;
+return function(dy){
+const now=Date.now();
+if(now-lastT>200)accum=0;
+lastT=now;accum+=dy;let s=0;
+while(accum>=TH&&s<1){s++;accum-=TH;}
+while(accum<=-TH&&s>-1){s--;accum+=TH;}
+if(accum>TH)accum=TH;else if(accum<-TH)accum=-TH;
+return s;
+};
+}
 function makeWheel(colId,readId,opts){
 const ITEM_H=48,HALF=2,THRESHOLD=opts.threshold||42,SEL=opts.selected||'var(--accent)';
 const col=document.getElementById(colId);
@@ -189,12 +204,12 @@ else{it.style.color='var(--text-muted)';it.style.fontWeight='400';it.style.opaci
 if(read){read.textContent=opts.read(values[idx]);if(animate){read.style.transform='scale(1.15)';setTimeout(function(){read.style.transform='scale(1)';},180);}}
 }
 function setIndex(i,animate){i=Math.min(values.length-1,Math.max(0,i));if(i===idx)return;idx=i;paint(animate!==false);if(opts.onChange)opts.onChange(values[idx]);}
-let accum=0;
-col.addEventListener('wheel',function(e){e.preventDefault();accum+=e.deltaY;while(accum>=THRESHOLD){setIndex(idx+1);accum-=THRESHOLD;}while(accum<=-THRESHOLD){setIndex(idx-1);accum+=THRESHOLD;}},{passive:false});
+const feed=feeder(THRESHOLD);
+col.addEventListener('wheel',function(e){e.preventDefault();const s=feed(e.deltaY);if(s!==0)setIndex(idx+s);},{passive:false});
 col.addEventListener('click',function(e){const t=e.target&&e.target.closest?e.target.closest('.wheel-item'):null;if(!t)return;setIndex(parseInt(t.dataset.i,10));});
-let touchY=null,touchAcc=0;
-col.addEventListener('touchstart',function(e){touchY=e.touches[0].clientY;touchAcc=0;},{passive:true});
-col.addEventListener('touchmove',function(e){if(touchY===null)return;const dy=touchY-e.touches[0].clientY;touchAcc+=dy;touchY=e.touches[0].clientY;while(touchAcc>=THRESHOLD){setIndex(idx+1);touchAcc-=THRESHOLD;}while(touchAcc<=-THRESHOLD){setIndex(idx-1);touchAcc+=THRESHOLD;}},{passive:true});
+let touchY=null;const feedT=feeder(THRESHOLD);
+col.addEventListener('touchstart',function(e){touchY=e.touches[0].clientY;},{passive:true});
+col.addEventListener('touchmove',function(e){if(touchY===null)return;const dy=touchY-e.touches[0].clientY;touchY=e.touches[0].clientY;const s=feedT(dy);if(s!==0)setIndex(idx+s);},{passive:true});
 col.addEventListener('keydown',function(e){if(e.key==='ArrowDown'||e.key==='ArrowRight'){setIndex(idx+1);e.preventDefault();}else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){setIndex(idx-1);e.preventDefault();}});
 paint(false);
 return{get:function(){return values[idx];},set:function(v){let best=0,bd=Infinity;values.forEach(function(x,i){const d=Math.abs(x-v);if(d<bd){bd=d;best=i;}});setIndex(best);}};
@@ -204,49 +219,49 @@ const ITEM_H=48,HALF=2,TH=opts.threshold||60,PER=10,CYCLES=12,N=PER*CYCLES;
 const col=document.getElementById(colId);
 const track=document.createElement('div');track.className='wheel-track';
 const padTop=document.createElement('div');padTop.style.height=(ITEM_H*HALF)+'px';track.appendChild(padTop);
-const items=[];for(let i=0;i<N;i++){const it=document.createElement('div');it.className='wheel-item';it.textContent=String(i%PER);track.appendChild(it);items.push(it);}
+const items=[];const ticks=[];for(let i=0;i<N;i++){const it=document.createElement('div');it.className='wheel-item';const tk=document.createElement('span');tk.className='jog-tick'+(i%5===0?' tall':'');it.appendChild(tk);track.appendChild(it);items.push(it);ticks.push(tk);}
 const padBottom=document.createElement('div');padBottom.style.height=(ITEM_H*HALF)+'px';track.appendChild(padBottom);
 col.appendChild(track);
 let pos=N/2;
 function paint(){
 track.style.transform='translateY('+(-(pos*ITEM_H))+'px)';
 const c=Math.round(pos);
-items.forEach(function(it,i){
+ticks.forEach(function(tk,i){
 const dist=Math.abs(i-c);
-if(dist===0){it.style.color='var(--text)';it.style.fontWeight='700';it.style.opacity='1';it.style.transform='scale(1.05)';}
-else if(dist===1){it.style.color='var(--text-muted)';it.style.fontWeight='400';it.style.opacity='0.7';it.style.transform='scale(0.88)';}
-else if(dist===2){it.style.color='var(--text-muted)';it.style.fontWeight='400';it.style.opacity='0.4';it.style.transform='scale(0.78)';}
-else{it.style.color='var(--text-muted)';it.style.fontWeight='400';it.style.opacity='0.18';it.style.transform='scale(0.7)';}
+if(dist===0){tk.style.background='var(--text)';tk.style.opacity='1';}
+else if(dist===1){tk.style.background='var(--text-muted)';tk.style.opacity='0.6';}
+else{tk.style.background='var(--text-muted)';tk.style.opacity='0.3';}
 });
 }
 function recenter(){
 if(pos>=N-HALF-4||pos<=HALF+3){const d=pos>N/2?-PER:PER;track.style.transition='none';pos+=d;track.style.transform='translateY('+(-(pos*ITEM_H))+'px)';void track.offsetHeight;track.style.transition='';paint();}
 }
 function nudge(dir){pos+=dir;paint();opts.onNudge(dir*(opts.rate||1));setTimeout(recenter,360);}
-let accum=0;
-col.addEventListener('wheel',function(e){e.preventDefault();accum+=e.deltaY;while(accum>=TH){nudge(1);accum-=TH;}while(accum<=-TH){nudge(-1);accum+=TH;}},{passive:false});
+const feedJ=feeder(TH);
+col.addEventListener('wheel',function(e){e.preventDefault();const s=feedJ(e.deltaY);if(s!==0)nudge(s);},{passive:false});
 col.addEventListener('click',function(e){let dir=1;try{const r=col.getBoundingClientRect();if(r&&e.clientY!==undefined&&e.clientY<r.top+r.height/2){dir=-1;}}catch(err){}nudge(dir);});
-let touchY=null,touchAcc=0;
-col.addEventListener('touchstart',function(e){touchY=e.touches[0].clientY;touchAcc=0;},{passive:true});
-col.addEventListener('touchmove',function(e){if(touchY===null)return;const dy=touchY-e.touches[0].clientY;touchAcc+=dy;touchY=e.touches[0].clientY;while(touchAcc>=TH){nudge(1);touchAcc-=TH;}while(touchAcc<=-TH){nudge(-1);touchAcc+=TH;}},{passive:true});
+let touchY=null;const feedJT=feeder(TH);
+col.addEventListener('touchstart',function(e){touchY=e.touches[0].clientY;},{passive:true});
+col.addEventListener('touchmove',function(e){if(touchY===null)return;const dy=touchY-e.touches[0].clientY;touchY=e.touches[0].clientY;const s=feedJT(dy);if(s!==0)nudge(s);},{passive:true});
 col.addEventListener('keydown',function(e){if(e.key==='ArrowDown'||e.key==='ArrowRight'){nudge(1);e.preventDefault();}else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){nudge(-1);e.preventDefault();}});
 paint();
 return{nudge:nudge};
 }
 let wDays,wHours,wJogFast,wJogFine;
+let hoursStash=null;
 let pct=0;
 function setPct(v){pct=Math.min(100,Math.max(0,Math.round(v*10)/10));paintPct();}
 function pctCombined(){return pct;}
 function paintPct(){document.getElementById('readPct').textContent=fmt(pct)+' %';}
 document.addEventListener('DOMContentLoaded',()=>{const toggle=document.getElementById('themeToggle');if(toggle){toggle.addEventListener('click',()=>{if(isChrome)return;const current=document.documentElement.getAttribute('data-theme');const next=current==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('go-dashboard-theme',next);}catch(e){}updateToggleUI(next);});}
 try{const saved=localStorage.getItem('go-dashboard-theme');if(saved==='light'||saved==='dark'){document.documentElement.setAttribute('data-theme',saved);updateToggleUI(saved);}}catch(e){}
-wDays=makeWheel('wheelDays','readDays',{min:0,max:30,step:1,threshold:55,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v===30&&wHours){wHours.set(0);}}});
-wHours=makeWheel('wheelHours','readHours',{min:0,max:23,step:1,threshold:75,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v>0&&wDays&&wDays.get()===30){wDays.set(29);}}});
+wDays=makeWheel('wheelDays','readDays',{min:0,max:30,step:1,threshold:55,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v===30){if(wHours&&wHours.get()>0){hoursStash=wHours.get();wHours.set(0);}}else if(hoursStash!==null&&wHours&&wHours.get()===0){wHours.set(hoursStash);hoursStash=null;}}});
+wHours=makeWheel('wheelHours','readHours',{min:0,max:23,step:1,threshold:75,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v>0){hoursStash=null;if(wDays&&wDays.get()===30){wDays.set(29);}}}});
 wJogFast=makeJog('wheelPctFast',{rate:1,threshold:60,onNudge:function(d){setPct(pct+d);}});
 wJogFine=makeJog('wheelPctFine',{rate:0.1,threshold:90,onNudge:function(d){setPct(pct+d);}});
 paintPct();
 document.getElementById('calcBtn').addEventListener('click',calculer);
-document.getElementById('resetBtn').addEventListener('click',()=>{wDays.set(0);wHours.set(0);setPct(0);document.getElementById('statElapsed').textContent='—';document.getElementById('statConso').textContent='—';document.getElementById('statBalance').textContent='—';document.getElementById('statBalance').style.color='';document.getElementById('resultsGrid').innerHTML='<div class="no-results">Sélectionnez vos valeurs aux barillets puis cliquez sur « Calculer » pour voir votre solde.</div>';});
+document.getElementById('resetBtn').addEventListener('click',()=>{wDays.set(0);wHours.set(0);setPct(0);hoursStash=null;document.getElementById('statElapsed').textContent='—';document.getElementById('statConso').textContent='—';document.getElementById('statBalance').textContent='—';document.getElementById('statBalance').style.color='';document.getElementById('resultsGrid').innerHTML='<div class="no-results">Sélectionnez vos valeurs aux barillets puis cliquez sur « Calculer » pour voir votre solde.</div>';});
 window.GoDash={set:function(d,h,c){wDays.set(d);wHours.set(h);setPct(Number(c)||0);},get:function(){return{days:wDays.get(),hours:wHours.get(),conso:pctCombined()};},calc:calculer};
 });
 function fmt(n,dec){return n.toFixed(dec===undefined?2:dec).replace('.',',');}
