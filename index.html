@@ -122,7 +122,7 @@ html[data-force-chrome] .theme-toggle{display:none}
 <span class="filter-label">📅 Jours restants</span>
 <div class="wheel-wrap">
 <div class="wheel-box"><div class="wheel-window"></div><div class="wheel-col" id="wheelDays" tabindex="0" role="listbox" aria-label="Jours restants, 0 à 30"></div></div>
-<div><div class="wheel-readout" id="readDays">0</div><div class="wheel-sub">jours restants</div></div>
+<div><div class="wheel-readout" id="readDays">30</div><div class="wheel-sub">jours restants</div></div>
 </div>
 </div>
 <div class="filter-group">
@@ -198,6 +198,7 @@ const items=values.map(function(v,i){const it=document.createElement('div');it.c
 const padBottom=document.createElement('div');padBottom.style.height=(ITEM_H*HALF)+'px';track.appendChild(padBottom);
 col.appendChild(track);
 let idx=0;
+if(opts.initial!==undefined){let best=0,bd=Infinity;values.forEach(function(x,i){const d=Math.abs(x-opts.initial);if(d<bd){bd=d;best=i;}});idx=best;}
 function paint(animate){
 track.style.transform='translateY('+(-(idx*ITEM_H))+'px)';
 items.forEach(function(it,i){
@@ -263,13 +264,13 @@ function saveValues(){try{localStorage.setItem('go-dashboard-values',JSON.string
 function liveCalc(){saveValues();calculer();}
 document.addEventListener('DOMContentLoaded',()=>{const toggle=document.getElementById('themeToggle');if(toggle){toggle.addEventListener('click',()=>{if(isChrome)return;const current=document.documentElement.getAttribute('data-theme');const next=current==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('go-dashboard-theme',next);}catch(e){}updateToggleUI(next);});}
 try{const saved=localStorage.getItem('go-dashboard-theme');if(saved==='light'||saved==='dark'){document.documentElement.setAttribute('data-theme',saved);updateToggleUI(saved);}}catch(e){}
-wDays=makeWheel('wheelDays','readDays',{min:0,max:30,step:1,threshold:55,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v===30){if(wHours&&wHours.get()>0){hoursStash=wHours.get();wHours.set(0);}}else if(hoursStash!==null&&wHours&&wHours.get()===0){wHours.set(hoursStash);hoursStash=null;}liveCalc();}});
+wDays=makeWheel('wheelDays','readDays',{min:0,max:30,step:1,threshold:55,initial:30,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v===30){if(wHours&&wHours.get()>0){hoursStash=wHours.get();wHours.set(0);}}else if(hoursStash!==null&&wHours&&wHours.get()===0){wHours.set(hoursStash);hoursStash=null;}liveCalc();}});
 wHours=makeWheel('wheelHours','readHours',{min:0,max:23,step:1,threshold:75,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v>0){hoursStash=null;if(wDays&&wDays.get()===30){wDays.set(29);}}liveCalc();}});
 wJogFast=makeJog('wheelPctFast',{rate:1,threshold:60,onNudge:function(d){setPct(pct+d);liveCalc();}});
 wJogFine=makeJog('wheelPctFine',{rate:0.1,threshold:90,onNudge:function(d){setPct(pct+d);liveCalc();}});
 paintPct();
 document.getElementById('calcBtn').addEventListener('click',calculer);
-document.getElementById('resetBtn').addEventListener('click',()=>{wDays.set(0);wHours.set(0);setPct(0);hoursStash=null;try{localStorage.removeItem('go-dashboard-values');}catch(e){}document.getElementById('statElapsed').textContent='—';document.getElementById('statConso').textContent='—';document.getElementById('statBalance').textContent='—';document.getElementById('statBalance').style.color='';document.getElementById('resultsGrid').innerHTML='<div class="no-results">Bougez les barillets, le solde se calcule en direct.</div>';document.getElementById('liveSummary').textContent='';});
+document.getElementById('resetBtn').addEventListener('click',()=>{wDays.set(30);wHours.set(0);setPct(0);hoursStash=null;try{localStorage.removeItem('go-dashboard-values');}catch(e){}document.getElementById('statElapsed').textContent='—';document.getElementById('statConso').textContent='—';document.getElementById('statBalance').textContent='—';document.getElementById('statBalance').style.color='';document.getElementById('resultsGrid').innerHTML='<div class="no-results">Bougez les barillets, le solde se calcule en direct.</div>';document.getElementById('liveSummary').textContent='';});
 try{const sv=JSON.parse(localStorage.getItem('go-dashboard-values')||'null');if(sv&&isFinite(sv.d)&&isFinite(sv.h)&&isFinite(sv.c)){wDays.set(sv.d);wHours.set(sv.h);setPct(sv.c);calculer();}}catch(e){}
 window.GoDash={set:function(d,h,c){wDays.set(d);wHours.set(h);setPct(Number(c)||0);liveCalc();},get:function(){return{days:wDays.get(),hours:wHours.get(),conso:pctCombined()};},calc:calculer};
 });
