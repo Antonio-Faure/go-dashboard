@@ -12,11 +12,16 @@ Ouvrir `index.html` dans un navigateur, ou servir le dossier via GitHub Pages. R
 
 ## Calcul
 
-- Temps écoulé % = `((30 − jours) × 24 + (24 − heures)) / 720 × 100`
+- Temps écoulé % = `(720 − (jours × 24 + heures)) / 720 × 100`
 - Solde = consommation % − temps écoulé %
   - Solde positif → **avance** (on consomme plus vite que le temps ne passe)
   - Solde négatif → **retard** (on consomme plus lentement, rythme prudent)
 - Équilibre théorique = temps restant (`720 × (1 − consommation / 100)` converti en jours + heures) pour lequel la consommation correspondrait exactement au temps écoulé.
+- Projection à ce rythme (taux = consommation / heures écoulées) : s'il restera du quota en fin de cycle (`≈ X %`), sinon dans combien de temps il sera épuisé (`≈ X jours Y heures`).
+
+## Compte à rebours auto
+
+Chaque réglage est horodaté (`localStorage`) : au retour sur la page — ou quand l'onglet redevient visible, ou chaque minute — le temps restant est recalculé depuis cet horodatage, sans toucher à la consommation. La note sous les stats indique la dernière synchronisation.
 
 ## Code couleur
 
