@@ -161,7 +161,7 @@ html[data-force-chrome] .theme-toggle{display:none}
 <span class="stat-label">Solde</span>
 </div>
 </div>
-<p class="hint">Cycle de facturation de 30 jours (720 heures). Faites défiler les barillets à la molette, au doigt, au clic ou au clavier (flèches) — pour la consommation, les deux molettes déplacent le même curseur à deux vitesses, comme un microscope : rapide (±1 point par cran), fine (±0,1 point par cran). Solde = consommation − temps écoulé. Un solde positif signifie que vous consommez plus vite que le temps ne passe (en avance) ; un solde négatif signifie que vous consommez plus lentement (en retard, donc prudent).</p>
+<p class="hint">Cycle de facturation de 30 jours (720 heures). Faites défiler les barillets à la molette, au doigt, au clic ou au clavier (flèches) — les jours bouclent : passer sous 0 revient à 30 et recommence un nouveau cycle (heures et consommation remises à 0) ; les heures retiennent et empruntent sur les jours comme un compteur. Pour la consommation, les deux molettes déplacent le même curseur à deux vitesses, comme un microscope : rapide (±1 point par cran), fine (±0,1 point par cran). Solde = consommation − temps écoulé. Un solde positif signifie que vous consommez plus vite que le temps ne passe (en avance) ; un solde négatif signifie que vous consommez plus lentement (en retard, donc prudent).</p>
 </div>
 <div class="results-section">
 <div class="results-grid" id="resultsGrid">
@@ -210,7 +210,15 @@ else{it.style.color='var(--text-muted)';it.style.fontWeight='400';it.style.opaci
 });
 if(read){read.textContent=opts.read(values[idx]);if(animate){read.style.transform='scale(1.15)';setTimeout(function(){read.style.transform='scale(1)';},180);}}
 }
-function setIndex(i,animate){i=Math.min(values.length-1,Math.max(0,i));if(i===idx)return;idx=i;paint(animate!==false);if(opts.onChange)opts.onChange(values[idx]);}
+function setIndex(i,animate){
+if(i<0){
+if(opts.wrap==='down'||opts.wrap==='both'){if(opts.onWrap&&opts.onWrap(-1)===false){i=0;}else{i=values.length-1;}}
+else{i=0;}
+}else if(i>=values.length){
+if(opts.wrap==='up'||opts.wrap==='both'){if(opts.onWrap&&opts.onWrap(1)===false){i=values.length-1;}else{i=0;}}
+else{i=values.length-1;}
+}
+if(i===idx)return;idx=i;paint(animate!==false);if(opts.onChange)opts.onChange(values[idx]);}
 const feed=feeder(THRESHOLD);
 col.addEventListener('wheel',function(e){e.preventDefault();const s=feed(e.deltaY);if(s!==0)setIndex(idx+s);},{passive:false});
 col.addEventListener('click',function(e){const t=e.target&&e.target.closest?e.target.closest('.wheel-item'):null;if(!t)return;setIndex(parseInt(t.dataset.i,10));});
@@ -256,6 +264,7 @@ return{nudge:nudge};
 }
 let wDays,wHours,wJogFast,wJogFine;
 let hoursStash=null;
+let carryGuard=false;
 let pct=0;
 function setPct(v){pct=Math.min(100,Math.max(0,Math.round(v*10)/10));paintPct();}
 function pctCombined(){return pct;}
@@ -264,8 +273,8 @@ function saveValues(){try{localStorage.setItem('go-dashboard-values',JSON.string
 function liveCalc(){saveValues();calculer();}
 document.addEventListener('DOMContentLoaded',()=>{const toggle=document.getElementById('themeToggle');if(toggle){toggle.addEventListener('click',()=>{if(isChrome)return;const current=document.documentElement.getAttribute('data-theme');const next=current==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('go-dashboard-theme',next);}catch(e){}updateToggleUI(next);});}
 try{const saved=localStorage.getItem('go-dashboard-theme');if(saved==='light'||saved==='dark'){document.documentElement.setAttribute('data-theme',saved);updateToggleUI(saved);}}catch(e){}
-wDays=makeWheel('wheelDays','readDays',{min:0,max:30,step:1,threshold:55,initial:30,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v===30){if(wHours&&wHours.get()>0){hoursStash=wHours.get();wHours.set(0);}}else if(hoursStash!==null&&wHours&&wHours.get()===0){wHours.set(hoursStash);hoursStash=null;}liveCalc();}});
-wHours=makeWheel('wheelHours','readHours',{min:0,max:23,step:1,threshold:75,format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onChange:function(v){if(v>0){hoursStash=null;if(wDays&&wDays.get()===30){wDays.set(29);}}liveCalc();}});
+wDays=makeWheel('wheelDays','readDays',{min:0,max:30,step:1,threshold:55,initial:30,wrap:'down',format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onWrap:function(){setPct(0);hoursStash=null;if(wHours){wHours.set(0);}},onChange:function(v){if(v===30){if(!carryGuard&&wHours&&wHours.get()>0){hoursStash=wHours.get();wHours.set(0);}}else if(hoursStash!==null&&wHours&&wHours.get()===0){wHours.set(hoursStash);hoursStash=null;}liveCalc();}});
+wHours=makeWheel('wheelHours','readHours',{min:0,max:23,step:1,threshold:75,wrap:'both',format:function(v){return String(Math.round(v));},read:function(v){return String(Math.round(v));},onWrap:function(dir){if(dir>0){carryGuard=true;if(wDays){wDays.set(Math.min(30,wDays.get()+1));}carryGuard=false;}else{if(wDays&&wDays.get()>0){wDays.set(wDays.get()-1);}else{return false;}}},onChange:function(v){if(v>0){hoursStash=null;if(wDays&&wDays.get()===30){wDays.set(29);}}liveCalc();}});
 wJogFast=makeJog('wheelPctFast',{rate:1,threshold:60,onNudge:function(d){setPct(pct+d);liveCalc();}});
 wJogFine=makeJog('wheelPctFine',{rate:0.1,threshold:90,onNudge:function(d){setPct(pct+d);liveCalc();}});
 paintPct();
