@@ -154,8 +154,8 @@ let hours=clamp(hoursRaw,0,24);
 let conso=clamp(consoRaw,0,100);
 if(isNaN(days)||isNaN(hours)||isNaN(conso)){afficherErreur('Valeurs invalides. Vérifiez vos saisies (jours : 0–30, heures : 0–24, consommation : 0–100 %).');return;}
 const TOTAL=30*24;
-const elapsedHours=(30-days)*24+(24-hours);
-const elapsedClamped=Math.min(TOTAL,Math.max(0,elapsedHours));
+const remainingHours=days*24+hours;
+const elapsedClamped=Math.min(TOTAL,Math.max(0,TOTAL-remainingHours));
 const elapsedPct=elapsedClamped/TOTAL*100;
 const balance=conso-elapsedPct;
 const remainingEqHours=TOTAL*(1-conso/100);
@@ -201,7 +201,7 @@ document.getElementById('resultsGrid').innerHTML=
 '<h3 class="card-title">⏳ Temps écoulé</h3>'+
 '<span class="card-chapter">Cycle de 30 jours</span>'+
 '<div class="formula-box">'+fmt(elapsedPct)+' % du cycle écoulé</div>'+
-'<div class="formula-details"><div><span class="detail-label">Calcul</span><div class="detail-value">((30 − '+days+') × 24 + (24 − '+hours+')) ÷ 720 × 100 = '+fmt(elapsedPct)+' %.</div></div></div>'+
+'<div class="formula-details"><div><span class="detail-label">Calcul</span><div class="detail-value">Temps restant : '+days+' × 24 + '+hours+' = '+remainingHours+' h → temps écoulé : (720 − '+remainingHours+') ÷ 720 × 100 = '+fmt(elapsedPct)+' %.</div></div></div>'+
 '</div>'+
 '<div class="card">'+
 '<h3 class="card-title">📊 Consommation</h3>'+
