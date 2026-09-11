@@ -323,6 +323,17 @@ let eqH=Math.round(remainingEqHours-eqD*24);
 if(eqH===24){eqD+=1;eqH=0;}
 if(eqD>30){eqD=30;eqH=0;}
 if(eqD<0){eqD=0;eqH=0;}
+const eqElapsedH=conso/100*TOTAL;
+const eqDeltaH=eqElapsedH-elapsedClamped;
+const eqDateStr=new Date(Date.now()+eqDeltaH*3600000).toLocaleString('fr-FR',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const eqAbsH=Math.abs(eqDeltaH);
+let eqCD=Math.floor(eqAbsH/24),eqCH=Math.round(eqAbsH-eqCD*24);
+if(eqCH===24){eqCD+=1;eqCH=0;}
+const eqCDStr=eqCD+' jour'+(eqCD>1?'s':'')+' '+eqCH+' heure'+(eqCH>1?'s':'');
+let eqWhen;
+if(eqAbsH<1/60){eqWhen='maintenant';}
+else if(eqDeltaH>0){eqWhen='dans '+eqCDStr;}
+else{eqWhen='il y a '+eqCDStr;}
 let status,statusLabel,statusClass,statusColor;
 if(balance<=-10){status='cyan';statusClass='result-cyan';statusColor='#22d3ee';statusLabel='Largement en retard';}
 else if(balance<=0){status='green';statusClass='result-green';statusColor='#22c55e';statusLabel='En retard';}
@@ -366,7 +377,7 @@ document.getElementById('resultsGrid').innerHTML=
 '<h3 class="card-title">⚖️ Équilibre théorique</h3>'+
 '<span class="card-chapter">Rythme neutre</span>'+
 '<div class="formula-box"><span class="result-value">Équilibre théorique : '+eqD+' jour'+(eqD>1?'s':'')+' '+eqH+' heure'+(eqH>1?'s':'')+'</span></div>'+
-'<div class="formula-details"><div><span class="detail-label">Interprétation</span><div class="detail-value">Avec une consommation de '+fmt(conso)+' %, vous seriez à l\u2019équilibre s\u2019il vous restait '+eqD+' jour'+(eqD>1?'s':'')+' et '+eqH+' heure'+(eqH>1?'s':'')+' dans le cycle.</div></div></div>'+
+'<div class="formula-details"><div><span class="detail-label">Interprétation</span><div class="detail-value">Avec une consommation de '+fmt(conso)+' %, vous seriez à l\u2019équilibre s\u2019il vous restait '+eqD+' jour'+(eqD>1?'s':'')+' et '+eqH+' heure'+(eqH>1?'s':'')+' dans le cycle.</div></div><div><span class="detail-label">Date d\u2019équilibre</span><div class="detail-value">'+eqDateStr+' (heure locale)</div></div><div><span class="detail-label">Échéance</span><div class="detail-value">'+eqWhen+'</div></div></div>'+
 '</div>'+
 '<div class="card">'+
 '<h3 class="card-title">⏳ Temps écoulé</h3>'+
